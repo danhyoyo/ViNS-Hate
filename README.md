@@ -1,47 +1,57 @@
-# ViNS-Hate
+# ViNS-Hate: Code, Dataset, and Benchmark Results
 
-ViNS-Hate is a Vietnamese social-media dataset and benchmark for detecting regional prejudice and hostility directed toward Northerners and Southerners. Each comment receives two independent target-specific labels:
+This repository contains the training/evaluation code, processed dataset, and benchmark results for ViNS-Hate, a Vietnamese social-media dataset with target-specific labels for regional prejudice and hostility toward Northerners and Southerners.
 
-- `NON_HATE`: no prejudice or hostility toward the specified target;
-- `PREJUDICIAL`: a negative regional stereotype or generalization without direct abusive hostility;
-- `HOSTILE`: direct insults, slurs used as attacks, dehumanization, exclusion, threats, or wishes of harm.
+## Repository scope
 
-The corpus contains 4,423 comments collected from social-media videos posted between 2024 and 2026. The released split contains 3,095 training, 664 validation, and 664 test comments. The benchmark compares TF--IDF classifiers, a multi-task BiLSTM with attention, and PhoBERT.
+Only the following materials are tracked here:
 
-## Repository contents
+- model training and evaluation code;
+- processed train/validation/test data;
+- Cohen's kappa calculation code and annotation-agreement results;
+- benchmark result summaries for the three random seeds.
+
+The manuscript, figures, literature notes, and other project documents are intentionally kept outside this repository.
+
+## Contents
 
 ```text
 ViNS-Hate/
-├── data/processed/                 # Frozen train/validation/test CSV files
-├── figures/                         # Paper figures, including annotation workflow
-├── Kappa/                           # Annotation files and Cohen's kappa scripts/results
-├── research-notes/                  # Literature and review notes
-├── SEG301_Prj_annotations_merged.ipynb  # Main preprocessing/training/evaluation notebook
-├── run_three_seeds.py               # Reproduces seeds 42, 43, and 44 on the fixed split
-├── generate_paper_figures.ps1       # Regenerates the paper figures on Windows PowerShell
-├── model_comparison_multitask.csv   # Compact benchmark summary
-├── results_three_seeds/seed_*.csv   # Compact per-seed validation/test results
-├── VRD15K_Annotation_Guideline_v4_final_review_updated.md
-└── north_south_regional_hate_paper.tex  # Single-file LaTeX manuscript
+├── data/processed/
+│   ├── train.csv
+│   ├── val.csv
+│   └── test.csv
+├── Kappa/
+│   ├── calculate_kappa.py
+│   ├── cohen_kappa_pairwise.csv
+│   ├── cohen_kappa_report.md
+│   └── cohen_kappa_results.xlsx
+├── SEG301_Prj_annotations_merged.ipynb  # Main training/evaluation notebook
+├── run_three_seeds.py                   # Runs seeds 42, 43, and 44
+├── model_comparison_multitask.csv       # Compact benchmark summary
+└── results_three_seeds/
+    ├── seed_42.csv
+    ├── seed_43.csv
+    └── seed_44.csv
 ```
 
-Large model binaries and training checkpoints are intentionally excluded from GitHub because GitHub rejects files above 100 MB. Their local paths and the download location are listed in [Model files](#model-files).
+Large model binaries and checkpoints are not tracked in GitHub. They are listed in the model section below.
 
-## Dataset format
+## Dataset
 
-The processed CSV files have three columns:
+The processed CSV files contain 4,423 comments split into 3,095 training, 664 validation, and 664 test instances. Each file has three columns:
 
-| Column | Description |
+| Column | Meaning |
 |---|---|
-| `comment` | Vietnamese social-media comment text |
-| `north_hate` | Harm label relative to Northerners |
-| `south_hate` | Harm label relative to Southerners |
+| `comment` | Vietnamese social-media comment |
+| `north_hate` | Label relative to Northerners |
+| `south_hate` | Label relative to Southerners |
 
-The label values are `NON_HATE`, `PREJUDICIAL`, and `HOSTILE`. The two target dimensions are evaluated independently, so a comment may be harmful toward one target and non-harmful toward the other.
+Allowed labels are `NON_HATE`, `PREJUDICIAL`, and `HOSTILE`. The North and South labels are assigned independently.
 
-## Quick start
+## Installation
 
-The project was developed as a Python notebook workflow. Python 3.10+ is recommended. The notebook's dependency line uses the following packages:
+The notebook uses the following Python packages:
 
 ```powershell
 python -m venv .venv
@@ -50,71 +60,53 @@ python -m pip install --upgrade pip
 python -m pip install pandas numpy matplotlib seaborn scikit-learn torch transformers accelerate sentencepiece openpyxl joblib
 ```
 
-Open `SEG301_Prj_annotations_merged.ipynb` and run the cells in order. The notebook reads the processed data from `data/processed/` and writes figures and model-result summaries into the project folders.
+No dependency lock file is included yet; package versions should be recorded before a final archival release.
 
-## Reproduce the auxiliary analyses
+## Training and evaluation
 
-### Cohen's kappa
+Open `SEG301_Prj_annotations_merged.ipynb` and execute the cells in order. The notebook reads the frozen split from `data/processed/` and evaluates TF--IDF models, the multi-task BiLSTM, and PhoBERT.
 
-From the repository root:
-
-```powershell
-python Kappa\calculate_kappa.py
-```
-
-This reads the five annotator workbooks in `Kappa/` and regenerates the pairwise coefficients, report, and formatted workbook.
-
-### Three-seed benchmark
+To run the three-seed benchmark:
 
 ```powershell
 python run_three_seeds.py
 ```
 
-The script executes the notebook's training cells with seeds 42, 43, and 44 on the existing fixed split and writes compact summaries to `results_three_seeds/seed_42.csv`, `seed_43.csv`, and `seed_44.csv`. PhoBERT training requires a locally available base checkpoint and substantial disk space; the script currently uses an offline local Hugging Face cache path, so adapt that path for another machine.
+This runs seeds 42, 43, and 44 on the fixed split and writes compact summaries to `results_three_seeds/`. The script currently expects a local offline PhoBERT base checkpoint; adapt its `base_model` path when running on another machine.
 
-### Paper figures
+## Cohen's kappa
 
 ```powershell
-powershell -ExecutionPolicy Bypass -File .\generate_paper_figures.ps1
+python Kappa\calculate_kappa.py
 ```
 
-The script regenerates the English paper figures in `figures/` from the processed split files and the benchmark values encoded in the script.
+The script reads the five annotator workbooks and regenerates the pairwise coefficients and summary report in `Kappa/`.
 
-## Model files
+## Benchmark results
 
-The following model artifacts are present locally but are not committed to GitHub:
+The result CSV files contain validation and test metrics for the five model families over seeds 42, 43, and 44. The current best mean test macro-F1 is PhoBERT (`0.62 ± 0.02`, rounded to two decimals). The South-targeted `PREJUDICIAL` class remains difficult and receives zero F1 in the reported PhoBERT runs.
 
-| Model/artifact | Local path | Approximate size |
-|---|---|---:|
-| TF--IDF baseline bundle | `tfidf_baselines.joblib` | 72 MB |
-| Multi-task BiLSTM with attention | `bilstm_attention_multitask.pt` | 2.6 MB |
-| Final North PhoBERT | `saved_phobert/north_hate/` | 516 MB |
-| Final South PhoBERT | `saved_phobert/south_hate/` | 516 MB |
-| PhoBERT training checkpoints | `phobert_checkpoints/` | 3.1 GB |
-| Three-seed checkpoints | `results_three_seeds/seed_42/`, `seed_43/`, `seed_44/` | 9.3 GB |
+## Model files kept outside GitHub
 
-The current shared model folder is:
+The local model artifacts are:
 
-[Google Drive model folder](https://drive.google.com/drive/folders/1c5cXgUlzW-JK1tx0p5KGJzc9iRG5ibbx?usp=sharing)
+```text
+D:\FPTU LEARNING MATERIAL\TNMG\North_South_paper\saved_phobert\north_hate\
+D:\FPTU LEARNING MATERIAL\TNMG\North_South_paper\saved_phobert\south_hate\
+D:\FPTU LEARNING MATERIAL\TNMG\North_South_paper\bilstm_attention_multitask.pt
+D:\FPTU LEARNING MATERIAL\TNMG\North_South_paper\tfidf_baselines.joblib
+D:\FPTU LEARNING MATERIAL\TNMG\North_South_paper\phobert_checkpoints\
+D:\FPTU LEARNING MATERIAL\TNMG\North_South_paper\results_three_seeds\seed_42\
+D:\FPTU LEARNING MATERIAL\TNMG\North_South_paper\results_three_seeds\seed_43\
+D:\FPTU LEARNING MATERIAL\TNMG\North_South_paper\results_three_seeds\seed_44\
+```
 
-For normal inference, upload the two `saved_phobert/` folders and the compact TF--IDF/BiLSTM artifacts. The optimizer files under `phobert_checkpoints/` and the repeated three-seed checkpoints are only needed to resume training or audit every run.
+For inference, upload the two `saved_phobert` folders and the compact BiLSTM/TF--IDF artifacts. The repeated seed checkpoints and optimizer files are only needed to resume or audit training.
 
-## Current benchmark summary
+## Data-use note
 
-The manuscript reports three-seed results on one fixed 70/15/15 split. The best mean test macro-F1 is PhoBERT: `0.62 ± 0.02` after rounding to two decimal places. The South-targeted `PREJUDICIAL` class remains difficult and receives zero F1 in the reported PhoBERT runs.
+The dataset contains user-generated social-media text and potentially offensive language. Check platform policies and privacy/ethics requirements before redistribution or deployment. Model predictions should not be used to profile regional communities or as the sole basis for punitive decisions.
 
-These scores are preliminary benchmark results. The current PhoBERT run uses raw rather than Vietnamese word-segmented input, and the final release should use normalized duplicate-aware splitting and multi-seed evaluation consistently.
+## License
 
-## Paper
-
-The manuscript source is [`north_south_regional_hate_paper.tex`](north_south_regional_hate_paper.tex). It can be opened directly in Overleaf together with the `figures/` directory. The paper uses an inline bibliography, so no separate `.bib` file is required.
-
-## Data governance
-
-The comments originate from Vietnamese social-media discussions and may contain offensive language. The processed files retain comment text and target labels but do not include usernames or profile links. Before redistribution, check the source platforms' policies, privacy requirements, and any institutional ethics requirements. Do not use the labels or model predictions to profile regional communities or as the sole basis for punitive action.
-
-## License and citation
-
-No open-source license has been declared for this repository yet. Until the authors add a license and release statement, reuse should be requested from the authors.
-
-If you use this resource, cite the accompanying ViNS-Hate manuscript and link to this repository.
+No open-source license has been declared for this repository yet. Reuse should therefore be requested from the authors until a license is added.

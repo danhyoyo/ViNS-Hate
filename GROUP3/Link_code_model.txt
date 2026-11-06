@@ -1,2 +1,0 @@
-Link code: https://github.com/danhyoyo/ViNS-Hate
-Link model: https://drive.google.com/drive/folders/1c5cXgUlzW-JK1tx0p5KGJzc9iRG5ibbx?usp=sharing

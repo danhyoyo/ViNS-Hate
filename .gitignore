@@ -30,6 +30,12 @@ venv/
 .env
 .DS_Store
 
-# Reference PDFs and the bundled archive are kept locally, not in the code/data release.
-GROUP3/*.pdf
+# Manuscript, figures, literature notes, and reference materials are kept locally,
+# not in the code/data/results release.
+north_south_regional_hate_paper.tex
+figures/
+research-notes/
+GROUP3/
 GROUP3.zip
+VRD15K_Annotation_Guideline_v4_final_review_updated.md
+generate_paper_figures.ps1
