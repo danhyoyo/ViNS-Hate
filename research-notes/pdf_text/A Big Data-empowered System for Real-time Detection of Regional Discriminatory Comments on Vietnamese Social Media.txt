@@ -1,0 +1,498 @@
+=== PAGE 1 ===
+arXiv:2411.02587v1  [cs.CL]  29 Oct 2024
+A Big Data-empowered System for Real-time
+Detection of Regional Discriminatory Comments on
+Vietnamese Social Media
+An-Nghiep Huynh *,†, Thanh-Dat Do *,†, Trong-Hop Do *,†
+* University of Information Technology
+†Vietnam National University Ho Chi Minh City,Vietnam
+{21522377, 21520694}@gm.uit.edu.vn,
+Corresponding author: hopdt@uit.edu.vn
+Abstract—Regional discrimination is a persistent social issue in
+Vietnam. While existing research has explored hate speech i n the
+Vietnamese language, the specific issue of regional discri mination
+remains under-addressed. Previous studies primarily focu sed
+on model development without considering practical system
+implementation. In this work, we propose a task called Detec tion
+of Regional Discriminatory Comments on Vietnamese Social
+Media, leveraging the power of machine learning and transfe r
+learning models. We have built the ViRDC (Vietnamese Region al
+Discrimination Comments) dataset, which contains comment s
+from social media platforms, providing a valuable resource
+for further research and development. Our approach integra tes
+streaming capabilities to process real-time data from soci al media
+networks, ensuring the system’s scalability and responsiv eness.
+We developed the system on the Apache Spark framework to
+efficiently handle increasing data inputs during streamin g. Our
+system offers a comprehensive solution for the real-time de tection
+of regional discrimination in Vietnam.
+I. I NTRODUCTION
+A. Background
+The state of discrimination and prejudice in society often
+relates to specific characteristics such as race, gender, h ealth
+status, occupation, education, and living standards. Regi onal
+discrimination is defined as the prejudice or bias of one soc ial
+group against another based on their place of origin or home-
+town. The issue of regional discrimination exists to varyin g
+degrees in most countries around the world. After 1945, the
+problem of discrimination, prejudice, and bias became evid ent
+in countries such as the United States, Canada, some Euro-
+pean countries, and Australia [1]. In Germany, discriminat ion
+between citizens of the East and West persists more than 25
+years after reunification. In Vietnam, after several prolo nged
+wars that divided the country over the past centuries [2],
+regional discrimination has increased. This threatens nat ional
+unity and development, causes psychological harm to victim s,
+and provides opportunities for hostile forces to undermine the
+current political system of the country.
+Social media platforms, while allowing people to connect
+and communicate, have also become places where discrim-
+inatory behavior spreads easily. [3] On December 8, 2023,
+VTV24, a news program produced by the Center for Digital
+Content Production and Development, Vietnam Television,
+aired a special episode addressing the issue of regional dis -
+crimination on social media platforms in Vietnam. Emphasiz -
+ing its impact on national unity.
+There are several state-of-the-art approaches for text cla s-
+sification in the Vietnamese language, including machine
+learning, and deep learning. However, existing research ma inly
+focuses on developing models without implementing practic al
+systems, which are crucial for use in social networks. To
+address this gap, we propose a system that leverages big
+data technology to continuously collect and process data.
+Our models are deployed on the Apache Spark framework to
+ensure the system can handle the increasing volume of online
+data. Additionally, we introduce ViRDC, a dataset specific ally
+created for the automatic detection of regional discrimina tion
+in Vietnamese social media comments, serving as a crucial
+asset for future research and development.
+The paper’s structure is as follows: We shall discuss perti-
+nent research on the issue in Section 2. In the following sec-
+tion, we will give a thorough overview of ViRDC, covering the
+methods for collecting data, categorizing them, and organi zing
+the dataset. The model used in the study will be explained in
+Section 4. We will go into detail on the model’s architecture ,
+training algorithms, and selective methods. In Section 5, t he
+experiments carried out on the dataset will be covered in det ail,
+along with the results and analytical assessments that foll ow.
+After that, we will explain the real-time prediction featur es
+and the streaming data procedure in Section 6. Section 7 will
+conclude the study by providing a summary of the results and
+a proposal for future research.
+B. Motivation
+Research on detecting regional discriminatory comments on
+social media in Vietnam, using Spark and Kafka, is moti-
+vated by critical goals. The importance of detecting region al
+discriminatory comments in Vietnam lies not only in the
+social aspect but also has profound scientific and practica l
+significance. In the context of the growing development of
+social networks, regional discriminatory comments not onl y
+cause harm to individuals but also increase division within the
+
+=== PAGE 2 ===
+community. Research and detection of these comments help
+raise awareness of the issue, while also providing crucial d ata
+to develop automated tools to identify and prevent negative
+content. Furthermore, this research contributes to buildi ng a
+healthy online environment, promoting solidarity and mutu al
+understanding among regions in Vietnam.
+II. R ELATED WORK
+The study on “Hate Speech Detection on Vietnamese” [4],
+[5] offers crucial insights for our research. The meticulou s
+two-phase data preprocessing, including lowercase conver sion,
+link removal, and de-teen code mapping, provides a solid
+foundation for handling social media comments. The success
+of the PhoBERT-CNN model demonstrates the efficacy of
+combining transfer learning and deep learning.
+These findings prompt a reevaluation of our preprocessing
+strategies and model architectures. The F1 scores of 64.43%
+and 90.89% on ViHSD and HSD-VLSP datasets serve as
+benchmarks for our hate speech detection models. As we
+progress, the lessons from this study will enhance our appro ach
+to addressing similar challenges.
+III. D ATASET
+A. Data collection
+1) Source: The ViRDC (Vietnamese Regional Discrim-
+ination Comments) dataset is a meticulously self-collecte d
+compilation of around 17,000 social media comments. Source d
+from posts and videos, ViRDC aims to research and analyze
+language in social media, focusing on regional discriminat ion
+in Vietnam. This dataset offers unparalleled flexibility a nd
+control, ensuring accuracy and representativeness in stud ying
+the Vietnamese social media language, especially regardin g
+regional issues. The link to the dataset can be found here:
+https://github.com/anhuynh219/bigdata
+ViRDC is categorized into three label types to represent the
+diversity of social media language, Tables II with Vietname se
+language and I illustrate the three types of data in the datas et.
+Table I: The labels in dataset
+# Label Describe Example
+0.0 Other haha this is so funny
+1.0 Discrimination All Northerners are assh*le
+2.0 Supportive North and South are one family.
+Label 0.0 (Other): This category includes comments that
+may be insignificant remarks or comments that cannot be
+classified as 1.0 or 2.0.
+Label 1.0 (Discriminatory): This category includes com-
+ments containing offensive language directed at a specific
+group of people in a particular location or region.
+Label 2.0 (Supportive): This category includes comments
+that oppose regional discrimination or express respect for the
+culture and people of different regions.
+Table II: The labels in the dataset are presented in Vietname se
+# Label Describe Example
+0.0 Other haha cái này vui nha
+1.0 Discrimination bắc kỳ toàn lũ kh*n n*n
+2.0 Supportive Nam Bắc một nhà
+2) Building dataset: We labeled the dataset using the
+process shown Fig 1. First, we collected data from user
+comments on social media platforms. After gathering the
+data, we proceeded with the labeling process. Comments
+with low consensus among team members were relabeled.
+Additionally, we conducted error analysis on low-consensu s
+cases and updated our labeling guidelines to enhance the
+dataset’s quality.
+Figure 1: Data Labeling Process
+3) Example: T wo example tables (Table III and Table IV)
+written in English and Vietnamese:
+Table III: Some examples in dataset
+# Comment Label
+1 F*ck Southerners 1.0
+2 North, Central, South - one family 2.0
+3 the guy in the white shirt speaks so well 0.0
+4 Thanh Hóa people live deceitfully, cunningly... 1.0
+Table IV: Some examples in the dataset are presented in
+Vietnamese
+# Comment Label
+1 đ*t_mẹ bọn nam_kỳ 1.0
+2 Bắc Trung Nam một nhà 2.0
+3 anh áo trắng nói hay quá 0.0
+4 thanh hóa sống bạc lừa_lọc ranh_mãnh... 1.0
+B. Data preprocessing
+An important step in NLP is data preprocessing. Data
+preprocessing is the process of preparing raw text data for
+
+=== PAGE 3 ===
+further analysis. This process helps remove errors and nois e
+from the data while also converting it to a format that is easi er
+for NLP models to understand. We process raw data through
+each stage in Fig 2.
+ Figure 2: Preprocessing Steps
+- Lowercase Sentences : We lowercase all the data points’
+characters in the dataset. We do this to avoid Python seeing
+two exact words as separate because of their forms.
+- Delete link, icon, tag name : In many posts, We have
+seen many comments containing tag names, icons, and links
+to other websites. So we decide to remove all of these from
+our data.
+- Delete Redundant Space/Character : Users on social
+media unwittingly or wittingly type multiple spaces and rep eat
+characters within their comments. As a result, we decide to
+remove redundant spaces/characters.
+- Delete punctuation marks : In the environment of social
+networks, punctuation marks, and special characters are us ed
+extensively to give a more lively and emotional meaning to
+the reader.
+- Normalize Unicode: We see a lot of Vietnamese words in
+the dataset that are the same, but Python sees them as separat e
+because of its Unicode. There are some popular Unicode in
+comments like UTF-8, UTF-16BE, UTF-16LE, UTF-32. . . . So
+we decide to normalize all to UTF-8.
+- De-teencode and decode abbreviate : there are many teen
+codes and abbreviations in comments so we decided to detect
+and decode these to correct word.
+Example:
+• đc → được
+• k → không
+- Normalize Accented Letters : the Vietnamese language
+on social media has many different ways of typing accents
+for example "quà"and "qùa", "hóa"and "hoá". These are the
+same word with the same meaning but when put into Python,
+it will recognize these are different letters. So it is essen tial to
+normalize these words into one form.
+- Word Tokenizer: The input sentence is split into words
+or meaningful word phrases. To utilize this, we use the Word
+Segmenter of VnCoreNLP to our dataset for training the
+PhoBert model.
+Example:
+• Việt Nam → Việt_Nam
+• Phân biệt → phân_biệt
+We balanced three labels in the dataset mainly to improve
+model performance and avoid biased predictions after balan ces
+We then divided the data into three sets of train validation
+and test to train the language models for solving the problem
+in Fig 3
+Figure 3: Label Distribution in all Files
+We first analyzed sentence lengths to find differences amon g
+labels but found the average word count was similar: 12,388 f or
+label 0.0, 8,599 for 1.0, and 10,384 for 2.0. With no signific ant
+discrepancies (Fig 4), So we explored other characteristic s,
+focusing on the most frequent words in each label using word
+clouds.
+Figure 4: Comment Length Distribution
+During our analysis, we observed that the length distribu-
+tions of comments do not significantly differ across labels .
+Still, the opposite is true for the popularity of words withi n
+sentences. Regional discrimination label typically often in-
+clude terms like parky, namky, and California. On the other
+hand, supportive comments tend to use common phrases such
+as Bắc Trung (North-Central), Nam Bắc (South-North), Trung
+Nam (South-Central), and some words related to the unity of a
+country like tổ quốc (Motherland), một nhà (As one), đồng bào
+(Compatriots)’. Finally, comments labeled as "other"gene rally
+often utilize common words like không (no), and bọn (Gang).
+IV . MODEL
+A. Machine-learning model
+1) Random Forest: Random Forest is an ensemble learning
+method that builds multiple decision trees and outputs the
+
+=== PAGE 4 ===
+mode of the trees’ predictions. It’s known for its robustnes s,
+ability to handle large, high-dimensional datasets, and re sis-
+tance to overfitting. In comment classification, Random Fo rest
+can capture complex text patterns, making it highly accurat e.
+2) Multinomial Logistic Regression: Multinomial Logistic
+Regression extends Logistic Regression to handle multiple
+classes. Unlike binary logistic regression, it models the p roba-
+bility distribution across several outcomes, making it sui table
+for multi-class problems.
+3) Multinomial Naive Bayes: Multinomial Naive Bayes
+is tailored for multinomially distributed data, ideal for t ext
+classification. It assumes features (words) are generated from
+a multinomial distribution, fitting naturally with word co unts
+in documents.
+B. Transfer Learning Model
+1) PhoBERT: The transfer learning model has attracted
+increasing attention from NLP researchers around the world
+for its outstanding performance. One of the SOTA language
+models BERT, which stands for Bidirectional Encoder rep-
+resentations from transformers, is published by Devlin et a l
+[6]. For Vietnamese, the SOTA method was first released and
+called PhoBERT by Nguyen et al [7]. for solving Vietnamese
+NLP problems. PhoBERT is a pre-trained model, which has
+the same idea as RoBERTa, a replication study of BERT was
+released by Liu et al [8], and there are modifications to suit
+Vietnamese.
+2) XLM-RoBERTa: A large multi-lingual language model,
+developed by Facebook AI Research [9]. This model is an
+extended and improved version of the RoBERTa model. It
+has trained on 2.5TB of filtered data from Common Crawl
+(including Vietnamese and other languages worldwide).
+3) BERT-Base Multilingual Cased: With BERT-base [10],
+there are two multilingual models currently available
+(Cased/Uncased). The model is pre-trained on the top 104
+languages with the largest Wikipedia using a masked languag e
+modeling (MLM) objective in a self-supervised fashion.
+V . EXPERIMENTS AND RESULTS
+A. Experiments proposed system
+To address this issue, we have proposed a system as shown
+in Figure 5.
+The system consists of two main components. In the offline
+system. First, the dataset will be preprocessed before bein g
+divided into three parts: training, testing, and validatio n, to
+perform model building and performance evaluation. Next, w e
+select the model with the highest performance to be deployed
+in the online system for streaming data processing. In the
+online system, after crawling data from Facebook and TikTok ,
+data will go through the processing steps of Kafka and Spark
+and be preprocessed simultaneously. The best model will get
+data to predict the preprocessed data, The result will be sto red
+in a CSV file and visualized on the dashboard by Streamlit
+and Matplotlib
+Figure 5: The architecture of the proposed system
+B. Experiment settings
+As we analyzed in the Data section, the labels appear to
+be more discriminative based on the frequency of word occur-
+rences in a comment sentence rather than the number of words
+in those comments. Therefore, we utilize CountVectorizer from
+the scikit-learn library for our machine-learning models t o
+detect key phrases in the comments and extract their feature s.
+We also use GridSearchCV for the configuration of
+machine-learning models in this project:
+• Random Forest: We implement a Random Forest Classi-
+fier model with n_estimators = 400, criterion = ‘entropy’,
+and random_state = 42.
+• Multinomial Logistic Regression: This model is run
+with multi_class = ‘multinomial’, random_state = 42,
+solver = ‘lbfgs’.
+• Multinomial Naive Bayes: We use MutinomialNB Clas-
+sifier with ‘alpha’ = 1.0, it is the default value of this
+model. In addition, random_state = 42.
+In addition, transfer learning models were employed to ad-
+dress this classification problem. Due to hardware constra ints,
+all experiments utilized the base versions of the models.
+Specifically, PhoBERT, XLM-RoBERTa, and BERT-base-
+multilingual-cased were configured with five epochs, a max-
+imum sequence length of 512 to capture the full content of
+posts and comments, a batch size of 8, and a learning rate of
+5e-06.
+C. Evaluate metrics
+In this problem, we focus on two main evaluation met-
+rics: Accuracy and F1-macro. However, during the evaluatio n
+process, we place more emphasis on the F1-macro metric.
+The focus on F1-macro is due to the class imbalance within
+the dataset. When a dataset is imbalanced, evaluating solel y
+
+=== PAGE 5 ===
+based on Accuracy can lead to misunderstandings. Accuracy
+can be high when the model focuses only on predicting the
+majority class and disregards the minority class. This does not
+accurately reflect the model’s classification ability.
+Accuracy = Number of correct predictions
+Total number of predictions
+F1-macro = 2×Recall×Precision
+Recall+Precision
+By emphasizing F1-macro, we ensure that the model per-
+forms well across all classes, including the minority class es.
+This implies that the model has the ability to classify ac-
+curately and consistently across different instances, ens uring
+fairness and reliability in the evaluation process
+D. Experiment results
+Table V: Evaluation results on the Vietnamese Regional Dis-
+crimination Comments datasets
+Models Accuracy F1-score
+Random Forest 0.9712 0.9700
+Multinomial Logistic Regression 0.9108 0.9100
+Multinomial Naive Bayes 0.8400 0.8300
+XML-RoBERTa 0.8979 0.8902
+PhoBert 0.9206 0.9187
+Bert-base-multilingual-cased 0.9174 0.9154
+E. Results analysis
+Figure 6: Confusion matrix
+After obtaining the results in Table V We found that
+Random Forest with the ensemble learning method performs
+exceptionally well on the dataset due to its ability to parti tion
+the data space into smaller segments, thereby easily detect ing
+differences based on the specific features of each comment.
+We analyzed the errors of the highest-performing model. Fig
+Table VI: Some examples of classification error
+Content True label Predict
+người phân biệt là người miền nam 1.0 0.0
+parky tht ra là từ tiếg anh thật mà 0.0 1.0
+park ji sung 0.0 1.0
+bawts kyf ca 1.0 0.0
+bắcki 1.0 0.0
+sao paky nói zây 1.0 0.0
+6 shows the confusion matrix of the model on the test set. We
+can observe that the two labels most frequently confused wit h
+each other are "Discrimination"and "Other". Additionally , the
+label "Supportive"is well classified by the model.
+Sentences contain discriminate words but don’t have means
+to discriminate like the word "parky"in "parky that ra là từ
+tiếng anh thật mà"or likely discrimination words but not and
+such as park, party... may confuse the model
+On the contrary, certain sentences devoid of explicit regio nal
+discriminatory or negative language often harbor conceale d
+stereotypes about individuals from diverse regions. Such i n-
+stances pose challenges to the model’s classification capa bili-
+ties.
+Some misspellings in sentences also cause errors for the
+model like "bắcki", "iwr mỹ cũng gọi nam cali bắc cai cis
+sao đâu"or Keyboard input methods for creating diacritics f or
+Vietnamese words and phrases as defined by UniKey software,
+which is not encoded in comments like "bawt kyf ca"instead
+of "bắc kỳ ca".
+VI. S TREAMING
+A. Data Streaming
+Data streaming is the process of continuously transmitting
+data without interruptions. Instead of processing data onc e,
+like traditional methods, data streaming processes data as
+soon as it is received and continues while the data is still
+being transmitted. This allows companies and organization s
+to quickly receive processing results based on the latest da ta.
+Currently, there are many popular data streaming systems,
+such as Apache Kafka, Apache Spark Streaming, Amazon
+Kinesis, etc., actively supporting real-time data process ing. In
+this report, the research team will apply Apache Kafka to the
+group’s streaming system.
+B. Streaming Architecture
+The group’s processing flow is divided into two main parts,
+as described in the Figure 7
+Part 1: Data Collection from Facebook and TikTok and
+Sending It Through Kafka Producer:
+Firstly, we collect comments from posts on social media
+platforms. Additionally, we also built a Kafka producer to s end
+the UTF-8-encoded comments through the created topic.
+
+=== PAGE 6 ===
+Figure 7: The Architecture of Streaming System
+Part 2: Preprocessing and Classification of Comments
+Using the Random Forest Classifier Model:
+After conducting experiments and comparing different mod-
+els in Part V, we have chosen the Random Forest Classifier
+Model as the classification model used in our system. Next,
+we create a Kafka Consumer with the created topic, decode
+the received messages using UTF-8, and feed them into the
+preprocessing process. Then, we perform data vectorizatio n
+to match the model input. After the data encoding process,
+the data will be stored as CSV files, and these data will be
+provided for analysis and statistics.
+We have also built an interface for the data classified by
+the best model to visualize the results and analyze them with
+tables and charts:
+VII. C ONCLUSION AND FUTURE WORK
+In this paper, we implemented and compared text classifi-
+cation models to assess their performance. We introduced th e
+novel dataset ViRDC which comprises comments from social
+media platforms for Regional Discrimination Detection. We
+also build a system that can process real-time data from soci al
+media networks to ensure the scalability and responsivenes s
+of the system with the Apache Spark framework to handle the
+increasing data inputs.
+However, our ambitions extend beyond mere model perfor-
+mance. We aim to revolutionize real-time comment classifi-
+cation on social media networks using Apache Kafka, with a
+focus on scalability and efficiency. Our future plans inclu de
+leveraging advanced natural language processing models to
+detect complex discrimination types, such as regional, gen der,
+disability, national, and racial disparities. Refining ou r labeling
+process will be crucial for enhancing dataset quality and pe r-
+formance. Additionally, we intend to integrate various fra me-
+works, including deep learning and transfer learning model s,
+with fewer hardware limitations to handle larger and more
+intricate data, thereby improving classification capabil ities for
+complex problems.
+In the long run, we’re looking to create a system interface
+that’s easy to use and can blend effortlessly with the platfo rms
+people already use. This approach will make our system
+both accessible and practical. By following these future pl ans,
+we hope to make big improvements in how comments are
+classified and the wider effects this can have.
+REFERENCES
+[1] M. Bertrand and S. Mullainathan, “ Are emily and greg more employable
+than lakisha and jamal? a field experiment on labor market di scrimina-
+tion,” American Economic Review , vol. 94, no. 4, pp. 991–1013, 2004.
+[2] Wikipedia contributors, “Chia cắt Việt Nam,” 2024, onli ne; last modified
+08:54, 18 August-2024. [Online]. Available: https://bom. so/Dv2Jj11
+[3] Tiến Tú, Lê Phức, “Nhức nhối trào lưu phân biệt vùng miền tr ên mạng
+xã hội,” 2023, [Friday, December 08, 2023 19:10 GMT+7]. [Onl ine].
+Available: https://bom.so/v6aMKp
+[4] S. T. Luu, K. V . Nguyen, and N. L.-T. Nguyen, “ A large-scal e dataset for
+hate speech detection on vietnamese social media texts,” in Advances
+and Trends in Artificial Intelligence. Artificial Intelli gence Practices:
+34th International Conference on Industrial, Engineering and Other Ap-
+plications of Applied Intelligent Systems, IEA/AIE 2021, K uala Lumpur,
+Malaysia, July 26–29, 2021, Proceedings, Part I 34 . Springer, 2021,
+pp. 415–426.
+[5] K. Quoc Tran, A. Trong Nguyen, P . G. Hoang, C. D. Luu, T.-H. Do,
+and K. Van Nguyen, “Vietnamese hate and offensive detection using
+phobert-cnn and social media streaming data,” Neural Computing and
+Applications, vol. 35, no. 1, pp. 573–594, 2023.
+[6] J. Devlin, M.-W. Chang, K. Lee, and K. Toutanova, “Bert: P re-training
+of deep bidirectional transformers for language understan ding,” arXiv
+preprint arXiv:1810.04805, 2018.
+[7] D. Q. Nguyen and A. T. Nguyen, “Phobert: Pre-trained lang uage models
+for vietnamese,” arXiv preprint arXiv:2003.00744 , 2020.
+[8] Y . Liu, “Roberta: A robustly optimized bert pretraining approach,” arXiv
+preprint arXiv:1907.11692, 2019.
+[9] A. Conneau, K. Khandelwal, N. Goyal, V . Chaudhary,
+G. Wenzek, F. Guzmán, E. Grave, M. Ott, L. Zettlemoyer, and
+V . Stoyanov, “Unsupervised cross-lingual representation learning
+at scale,” CoRR, vol. abs/1911.02116, 2019. [Online]. Available:
+http://arxiv.org/abs/1911.02116
+[10] J. Devlin, M. Chang, K. Lee, and K. Toutanova, “BERT:
+pre-training of deep bidirectional transformers for langu age
+understanding,” CoRR, vol. abs/1810.04805, 2018. [Online]. Available:
+http://arxiv.org/abs/1810.04805
+
+=== PAGE 7 ===
